@@ -1,68 +1,21 @@
-// import React, {useActionState} from 'react'
-// import {updateNameInDb} from "./api.js";
-//
-// const App = () => {
-//     const [state, actionFunction, isPending] = useActionState(updateName, {name:JSON.parse(localStorage.getItem("name")) || "Anonymous user"});
-//
-//     async function updateName(prevState, formAction) {
-//         try {
-//             const newName =formAction.get("name");
-//             const newState = {name: newName};
-//             await updateNameInDb(newState)
-//             return newState
-//         } catch (error) {
-//             console.error(error.message)
-//         }
-//     }
-//
-//     return (
-//         <>
-//             <p className={'userName'}>
-//                 Current user:<span>{state.name}</span>
-//             </p>
-//             {isPending && <p>Loading..</p>}
-//             <form action={actionFunction}>
-//                 <input
-//                     type='text'
-//                     name={'name'}
-//                     required/>
-//                 <button type='submit'>Submit</button>
-//             </form>
-//         </>
-//     )
-// }
-// export default App
 import React, {useActionState} from 'react'
-import {updateNameInDb} from "./api.js";
+import {fakeAPICall} from "./api.js";
 
 const App = () => {
-    const [state, actionFunction, isPending] = useActionState(updateName, {
-        error: null,
-        name: JSON.parse(localStorage.getItem("name")) || "Anonymous user"
-    });
+    const [isLiked, toggleLike, isPending] = useActionState(likeAction, false);
 
-    async function updateName(prevState, formAction) {
-        try {
-            const newName = await updateNameInDb(formAction.get("name"));
-            return {name: newName, error: null}
-        } catch (error) {
-            return {...prevState, error: error}
-        }
+    async function likeAction(prevState, formData) {
+        const newState = !prevState
+        await fakeAPICall(newState)
+        return newState
     }
 
     return (
         <>
-            <p className={'userName'}>
-                Current user:<span>{state.name}</span>
-            </p>
-            {isPending && <p>Loading..</p>}
-            <form action={actionFunction}>
-                <input
-                    type='text'
-                    name={'name'}
-                    required/>
-                <button type='submit'>Submit</button>
-                {state.error && <p style={{color: "red"}}>{state.error.message}</p>}
+            <p>{isLiked ? "You liked this post!" : "You haven't liked the post"}</p>
+            {isPending && <p>Updating...</p>}
+            <form action={toggleLike}>
+                <button type="submit"> {isLiked ? "Unlike" : "Like"}</button>
             </form>
         </>
     )
