@@ -2,23 +2,16 @@ import React, {useState} from 'react'
 import {updateNameInDb} from "./api.js";
 
 const App = () => {
-    const [input, setInput] = useState("");
     const [name, setName] = useState(
-        () => JSON.parse(localStorage.getItem("name")) || "Anonymous user"
-    );
+        () => JSON.parse(localStorage.getItem("name") || "Anonymous user")
+    )
 
-    function handleChange(event) {
-        setInput(event.target.value);
-    }
-
-    async function handleSubmit(event) {
-        event.preventDefault()
+    async function handleSubmit(formAction) {
         try {
-            const newName = await updateNameInDb(input);
-            setName(newName);
-            setInput("")
+            const newName = await updateNameInDb(formAction.get("name"));
+            setName(newName)
         } catch (error) {
-            console.log(error.message)
+            console.error(error.message)
         }
     }
 
@@ -27,11 +20,10 @@ const App = () => {
             <p className={'username'}>
                 Current user: <span>{name}</span>
             </p>
-            <form onSubmit={handleSubmit}>
+            <form action={handleSubmit}>
                 <input
                     type="text"
-                    value={input}
-                    onChange={handleChange}
+                    name={"name"}
                     required
                 />
                 <button type={'submit'}>Update</button>
