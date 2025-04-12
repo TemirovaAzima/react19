@@ -36,11 +36,11 @@ import React, {useActionState} from 'react'
 import {updateNameInDb} from "./api.js";
 
 const App = () => {
-    const [state, actionFunction, isPending] = useActionState(updateName, {name:JSON.parse(localStorage.getItem("name")) || "Anonymous user"});
+    const [state, actionFunction, isPending] = useActionState(updateName, {name: JSON.parse(localStorage.getItem("name")) || "Anonymous user"});
 
     async function updateName(prevState, formAction) {
         try {
-            const newName =await updateNameInDb(formAction.get("name"));
+            const newName = await updateNameInDb(formAction.get("name"));
             return {name: newName}
         } catch (error) {
             console.error(error.message)
