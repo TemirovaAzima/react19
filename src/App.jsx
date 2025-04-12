@@ -36,14 +36,17 @@ import React, {useActionState} from 'react'
 import {updateNameInDb} from "./api.js";
 
 const App = () => {
-    const [state, actionFunction, isPending] = useActionState(updateName, {name: JSON.parse(localStorage.getItem("name")) || "Anonymous user"});
+    const [state, actionFunction, isPending] = useActionState(updateName, {
+        error: null,
+        name: JSON.parse(localStorage.getItem("name")) || "Anonymous user"
+    });
 
     async function updateName(prevState, formAction) {
         try {
             const newName = await updateNameInDb(formAction.get("name"));
-            return {name: newName}
+            return {name: newName, error: null}
         } catch (error) {
-            console.error(error.message)
+            return {...prevState, error: error}
         }
     }
 
@@ -59,6 +62,7 @@ const App = () => {
                     name={'name'}
                     required/>
                 <button type='submit'>Submit</button>
+                {state.error && <p style={{color: "red"}}>{state.error.message}</p>}
             </form>
         </>
     )
