@@ -1,40 +1,31 @@
-import React, {useActionState, useOptimistic} from 'react'
-import {updateNameInDB} from "./api.js"
+import {useOptimistic, useState} from "react";
+import {fakePostCommentToServer} from "./api.js";
 
-const App = () => {
-    const [state, actionFunction] = useActionState(updateName, {
-        error: null,
-        name: JSON.parse(localStorage.getItem("name"))?.name || 'Anonymous user'
-    });
+export default function AppPage() {
+    const [comments, setComments] = useState([]);
+    const [optimisticComments, addOptimisticComments] = useOptimistic(
+        comments,
+        (currentComments, newComment) => [...currentComments, newComment]
+    );
 
-    const [optimistic, setOptimistic] = useOptimistic(state.name);
+    async function handleAddComment(commentText) {
+        const newComment = {id: Date.now(), text: commentText};
 
-    async function updateName(prevState, formAction) {
+        // await fakePostCommentToServer(newComment);
+        addOptimisticComments(newComment)
 
-        try {
-            setOptimistic(formAction.get(("name")))
-            const newName = await updateNameInDB(formAction.get("name"));
-            return {name: newName, error: null}
-        } catch (error) {
-            return {...prevState, error: error}
-        }
+        await fakePostCommentToServer(newComment);
+        setComments(prev => [...prev, newComment]);
     }
 
     return (
-        <>
-            <p className="username">
-                Current user: <span>{optimistic}</span>
-            </p>
-            <form action={actionFunction}>
-                <input
-                    type={'text'}
-                    name={"name"}
-                    required
-                />
-                <button type='submit'>Update</button>
-                {state.error && <p style={{color: "red"}}>{state.error.message}</p>}
-            </form>
-        </>
+        <div>
+            {optimisticComments.map((comments) => (
+                <p key={Math.random()}>{comments.text}</p>
+            ))}
+            <button onClick={() => handleAddComment("Hello world?")}>
+                Add Comment
+            </button>
+        </div>
     )
 }
-export default App
