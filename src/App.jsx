@@ -1,21 +1,38 @@
-import React, {useActionState} from 'react'
-import {fakeAPICall} from "./api.js";
+import React, {useActionState, useOptimistic} from 'react'
+import {updateNameInDB} from "./api.js"
 
 const App = () => {
-    const [isLiked, toggleLike, isPending] = useActionState(likeAction, false);
+    const [state, actionFunction] = useActionState(updateName, {
+        error: null,
+        name: JSON.parse(localStorage.getItem("name"))?.name || 'Anonymous user'
+    });
 
-    async function likeAction(prevState, formData) {
-        const newState = !prevState
-        await fakeAPICall(newState)
-        return newState
+    const [optimistic, setOptimistic] = useOptimistic(state.name);
+
+    async function updateName(prevState, formAction) {
+
+        try {
+            setOptimistic(formAction.get(("name")))
+            const newName = await updateNameInDB(formAction.get("name"));
+            return {name: newName, error: null}
+        } catch (error) {
+            return {...prevState, error: error}
+        }
     }
 
     return (
         <>
-            <p>{isLiked ? "You liked this post!" : "You haven't liked the post"}</p>
-            {isPending && <p>Updating...</p>}
-            <form action={toggleLike}>
-                <button type="submit"> {isLiked ? "Unlike" : "Like"}</button>
+            <p className="username">
+                Current user: <span>{optimistic}</span>
+            </p>
+            <form action={actionFunction}>
+                <input
+                    type={'text'}
+                    name={"name"}
+                    required
+                />
+                <button type='submit'>Update</button>
+                {state.error && <p style={{color: "red"}}>{state.error.message}</p>}
             </form>
         </>
     )
